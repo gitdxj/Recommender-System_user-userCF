@@ -178,4 +178,5 @@ if __name__ == '__main__':
 '''
 随手笔记：
 测试集和训练集中的user是完全相同的
+itemAttribute.txt中包含所有的item而测试集和训练集中只有一部分
 '''
