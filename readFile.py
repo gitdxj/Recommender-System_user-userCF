@@ -143,6 +143,24 @@ def get_test_user_list(test_user_item_mapping):
     return test_user_list
 
 
+def get_item_attribute_dict():
+    file = open("itemAttribute.txt", 'r')
+    lines = file.readlines()
+    item_attribute = dict()
+    for line in lines:
+        line = line.strip()
+        flag_1 = line.find('|')
+        flag_2 = line.find('|', flag_1 + 1)
+        itemID = line[0:flag_1]
+        attribute1 = line[flag_1+1: flag_2]
+        attribute2 = line[flag_2+1: len(line)]
+        if attribute1.isdigit() and attribute2.isdigit():
+            item_attribute[int(itemID)] = (int(attribute1), int(attribute2))
+        else:
+            item_attribute[int(itemID)] = None
+    return item_attribute
+
+
 def train_test_user_comparison():
     train = read_train("train.txt")
     test = read_test("test.txt")
@@ -169,7 +187,9 @@ def train_test_user_comparison():
 
 
 if __name__ == '__main__':
-
+    item_attribute = get_item_attribute_dict()
+    for i in range(20):
+        print(item_attribute[i])
 
 
 
