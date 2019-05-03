@@ -1,5 +1,8 @@
 import readFile
 
+# 这个值是使用global_mean函数计算出来的，这里我们直接作为一个常量用
+global_rating_mean = 49.54496554631943
+
 def user_item_transpose(user_item_rating):
     '''
     之前的字典dict[userID][itemID] = rating
@@ -65,8 +68,19 @@ def read_bias(filename):
     return bias_dict
 
 
+def global_mean(user_item_rating):
+    n_rating = 0  # 总的打分个数
+    for userID in user_item_rating:
+        n_rating += len(user_item_rating[userID].values())
+    mean_rating = 0  # 全局打分的平均值
+    for userID in user_item_rating:
+        for itemID in user_item_rating[userID]:
+            rating = user_item_rating[userID][itemID]
+            mean_rating += rating/n_rating
+    return mean_rating
+
 
 
 if __name__ == '__main__':
-    item_bias = read_bias('item_bias.txt')
-    print(item_bias[165095])
+    user_item_rating = readFile.read_train('train.txt')
+    print(global_mean(user_item_rating))

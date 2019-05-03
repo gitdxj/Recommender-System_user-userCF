@@ -97,6 +97,21 @@ def consine_similarity(list_a, list_b):
     return cos
 
 
+def user_similarity(user_item_rating, userID):
+    '''
+    对于一个特定的user，计算其与其他所有user的相似度
+    然后按照相似度进行排序
+    '''
+    user_simi = {}
+    user = user_item_rating[userID]
+    for each_userID in user_item_rating:
+        user_i = user_item_rating[each_userID]
+        simi = pearson_similarity_numpy(user, user_i)
+        user_simi[each_userID] = simi
+    user_simi = sorted(user_simi.items(), key = lambda user_simi:user_simi[1], reverse=True)
+    return user_simi
+
+
 def compare():
     a = {1:4, 4:5, 5:1}
     b = {1:5, 2:5, 3:4}
@@ -133,8 +148,29 @@ def write_simi():
     print("全部完成")
 
 
+def top_k_similar_user(user_item_rating, userID, K=40, threshold=0.1):
+    '''
+    给定一个user，计算出其和其他所有用户的相似度
+    按照相似度排序，选取前K个并且相似度大于threshold值的用户
+    返回一个字典，key为userID，value为相似度
+    '''
+    user_simi = user_similarity(user_item_rating, userID)
+    simi_dict = dict()
+    for i in range(K):
+        each_tuple = user_simi[i]
+        userID = each_tuple[0]
+        simi = each_tuple[1]
+        if simi > threshold:
+            simi_dict[userID] = simi
+        else:
+            break
+    return simi_dict
+
 
 if __name__ == '__main__':
-    compare()
+    simi_dict = top_k_similar_user(301, 40, 0.1)
+    for each in simi_dict:
+        string = str(each) + ':' + str(simi_dict[each])
+        print(string)
 
 

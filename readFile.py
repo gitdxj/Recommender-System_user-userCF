@@ -1,7 +1,7 @@
 import json
 
 
-def read_train(filename):
+def read_train(filename="train.txt"):
     '''
     读取训练数据train.txt
     将train.txt中的数据结构化为一个以userID为index的dictionary
@@ -90,7 +90,7 @@ def read_train_item_list_from_txt(filename):
     return item_list
 
 
-def read_test(filename):
+def read_test(filename="test.txt"):
     '''
     读取测试集的数据
     将其中的数据结构化为一个词典，key为userID，value为itemID组成的列表
