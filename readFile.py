@@ -14,7 +14,6 @@ def read_train(filename):
     except IOError:
         print("Error: 没有找到文件或读取文件失败")
     lines = file.readlines()
-    UserID = 0
     user_item_rating = {}
     for each_line in lines:
         each_line = each_line.strip()  # 去除左右空格
@@ -28,9 +27,9 @@ def read_train(filename):
         else:
             # 若这一行中有'|'则说明这一行的格式是这样的：userID|item数量
             userID = int(each_line[0:par_position])
-            print("现在userID为： "+str(userID))
-            print(each_line)
-            rated_item_number = int(each_line[par_position+1:len(each_line)])
+            # print("现在userID为： "+str(userID))
+            # print(each_line)
+            # rated_item_number = int(each_line[par_position+1:len(each_line)])
             if userID not in user_item_rating:
                 user_item_rating[userID] = {}
     file.close()
@@ -151,13 +150,18 @@ def get_item_attribute_dict():
         line = line.strip()
         flag_1 = line.find('|')
         flag_2 = line.find('|', flag_1 + 1)
-        itemID = line[0:flag_1]
+        itemID = int(line[0:flag_1])
         attribute1 = line[flag_1+1: flag_2]
         attribute2 = line[flag_2+1: len(line)]
-        if attribute1.isdigit() and attribute2.isdigit():
-            item_attribute[int(itemID)] = (int(attribute1), int(attribute2))
+        item_attribute[itemID] = list()
+        if attribute1.isdigit():
+            item_attribute[itemID].append(int(attribute1))
         else:
-            item_attribute[int(itemID)] = None
+            item_attribute[itemID].append(0)
+        if attribute2.isdigit():
+            item_attribute[itemID].append(int(attribute2))
+        else:
+            item_attribute(itemID).append(0)
     return item_attribute
 
 
