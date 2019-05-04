@@ -1,5 +1,5 @@
 import readFile
-from simiCal import pearson_similarity_numpy, consine_similarity, top_k_similar_user
+from simiCal import *
 import bias
 from sklearn.model_selection import train_test_split
 
@@ -35,30 +35,73 @@ def tuple2dict(tuple_list):
     return user_item_rating
 
 
-def predict(train_dict, vali_dict):
+def predict_bias(train_dict, vali_dict):
     prediction = dict()
-    for userID in vali_dict:
-        for itemID in vali_dict[userID]:
+    m = bias.global_rating_mean  # 用来计算bxi
+    item_mean = bias.read_mean("item_bias.txt")  # item_bias[itemID]为该item的bias
+    user_mean = bias.read_mean("user_bias.txt")  # user_bias[userID]为该user的bias
+    for userID_x in vali_dict:
+        for itemID in vali_dict[userID_x]:
+            mean_x = user_mean[userID_x]
+            mean_i = item_mean[itemID]
+            b_x_i = mean_x + mean_i - m
             rating_pred = 0  # 预测的打分
-            deno = 0
-            user_simi = top_k_similar_user(train_dict, userID, 100, 0)  # 和userID有最高的相似度的user
-            for each_userID in user_simi:
-                if itemID in train_dict[each_userID]:
-                    rating_pred += user_simi[each_userID]*train_dict[each_userID][itemID]
-                    deno += user_simi[each_userID]
+            deno = 0  # 分母的部分
+            user_simi = top_k_similar_user(train_dict, userID_x, 100, 0)  # 和userID有最高的相似度的user
+            for userID_y in user_simi:
+                mean_y = user_mean[userID_y]
+                b_y_i = mean_y + mean_i - m
+                if itemID in train_dict[userID_y]:  # 如果userID_y对itemID打过分
+                    rating_pred += user_simi[userID_y]*train_dict[userID_y][itemID] - b_y_i
+                    deno += user_simi[userID_y]
             if deno != 0:
                 rating_pred = rating_pred/deno
             else:
                 rating_pred = 0
                 print("没有相似用户对该item打过分")
-            if userID not in prediction:
-                prediction[userID] = dict()
-            prediction[userID][itemID] = rating_pred
-            true_rating = vali_dict[userID][itemID]
+            rating_pred += b_x_i
+            if userID_x not in prediction:
+                prediction[userID_x] = dict()
+            prediction[userID_x][itemID] = rating_pred
+            true_rating = vali_dict[userID_x][itemID]
             string = "true: " + str(true_rating) + '\n' + "pred: " + str(rating_pred) + '\n'
             print(string)
     print("hhhhhhhh")
     return prediction
+
+
+
+def predict(train_dict, vali_dict):
+    attribute_dict = readFile.get_item_attribute_dict()
+    prediction = dict()
+    for userID_x in vali_dict:
+        for itemID in vali_dict[userID_x]:
+            rating_pred = 0  # 预测的打分
+            deno = 0  # 分母的部分
+            user_simi = top_k_similar_user(train_dict, userID_x, 20, 0.1)  # 和userID有最高的相似度的user
+            for userID_y in user_simi:
+                if itemID in train_dict[userID_y]:  # 如果userID_y对itemID打过分
+                    item_rating = train_dict[userID_y][itemID]
+                else:  # userID_y没有对itemID打过分，则用item_attribute把对应的打分估计出来
+                    item_rating = item_rating_estimate(attribute_dict, train_dict[userID_y], itemID)
+                    if None == item_rating:
+                        continue
+                rating_pred += user_simi[userID_y] * item_rating
+                deno += user_simi[userID_y]
+            if deno != 0:
+                rating_pred = rating_pred/deno
+            else:
+                rating_pred = 0
+                print("没有相似用户对该item打过分")
+            if userID_x not in prediction:
+                prediction[userID_x] = dict()
+            prediction[userID_x][itemID] = rating_pred
+            true_rating = vali_dict[userID_x][itemID]
+            string = "true: " + str(true_rating) + '\n' + "pred: " + str(rating_pred) + '\n'
+            print(string)
+    print("hhhhhhhh")
+    return prediction
+
 
 
 

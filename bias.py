@@ -21,7 +21,7 @@ def user_item_transpose(user_item_rating):
     return T
 
 
-def write_user_bias(user_item_rating):
+def write_user_mean(user_item_rating):
     file = open("user_bias.txt", 'w+')
     user_bias = {}
     for userID in user_item_rating:
@@ -37,7 +37,7 @@ def write_user_bias(user_item_rating):
     print("user bias 写入完成")
 
 
-def write_item_bias(item_user_rating):
+def write_item_mean(item_user_rating):
     file = open("item_bias.txt", 'w+')
     item_bias = {}
     for itemID in item_user_rating:
@@ -53,7 +53,7 @@ def write_item_bias(item_user_rating):
     print("item bias 写入完成")
 
 
-def read_bias(filename):
+def read_mean(filename):
     try:
         file = open(filename, 'r')
     except IOError:
@@ -65,6 +65,7 @@ def read_bias(filename):
         ID = int(line[0])
         rating = float(line[1])
         bias_dict[ID] = rating
+    file.close()
     return bias_dict
 
 

@@ -143,6 +143,10 @@ def get_test_user_list(test_user_item_mapping):
 
 
 def get_item_attribute_dict():
+    '''
+    把itemAttribute读入字典
+    key为itemID，value为列表列表，列表第一个值是attribute1，第二个值是attribute2
+    '''
     file = open("itemAttribute.txt", 'r')
     lines = file.readlines()
     item_attribute = dict()
@@ -161,8 +165,100 @@ def get_item_attribute_dict():
         if attribute2.isdigit():
             item_attribute[itemID].append(int(attribute2))
         else:
-            item_attribute(itemID).append(0)
+            item_attribute[itemID].append(0)
     return item_attribute
+
+def get_item_attribute_cluster_dict():
+    '''
+    返回一个字典，key为属性元组(attr_1, attr_2)，value为属性元组相同的item组成的list
+    '''
+    file = open("itemAttribute.txt", 'r')
+    lines = file.readlines()
+    attr_dict = dict()
+    for line in lines:
+        line = line.strip()
+        flag_1 = line.find('|')
+        flag_2 = line.find('|', flag_1 + 1)
+        itemID = int(line[0:flag_1])
+        attribute1 = line[flag_1+1: flag_2]
+        attribute2 = line[flag_2+1: len(line)]
+        attr = list()
+        if attribute1.isdigit():
+            attr.append(int(attribute1))
+        else:
+            attr.append(0)
+        if attribute2.isdigit():
+            attr.append(int(attribute2))
+        else:
+            attr.append(0)
+        attr = (attr[0], attr[1])
+        if attr not in attr_dict:
+            attr_dict[attr] = list()
+        attr_dict[attr].append(itemID)
+    return attr_dict
+
+
+def get_attribute_item_list(attribute_dict):
+    return [item for item in attribute_dict.keys()]
+
+
+def item_attr_cluster(attribute_dict):
+    '''
+    对item根据attribute进行聚类
+    若两个attribute相同则聚到一起
+    返回一个字典，key为属性元组(attr_1, attr_2)，value为属性元组相同的item组成的list
+    这个算法运行下来需要数个小时，不如直接从itemAttribute里面读取
+    '''
+    item_cluster = dict()
+    attr_dict = attribute_dict
+    while attr_dict:
+        new_cluster = list()
+        items = [item for item in attr_dict]
+        base_item = items[0]
+        attr = attribute_dict[base_item]
+        attr = (attr[0], attr[1])
+        for each_item in attr_dict:
+            if attr_dict[each_item] == attr_dict[base_item]:
+                new_cluster.append(each_item)
+        for each_item in new_cluster:
+            attr_dict.pop(each_item)
+        item_cluster[attr] = new_cluster
+        # print("attr")
+        print(attr)
+        print("还剩："+str(len(attr_dict)))
+        # print("cluster")
+        # print(new_cluster)
+    return item_cluster
+
+
+def write_item_attr_cluster(attr_dict, filename = "item_cluster.txt"):
+    '''
+    把item_attr_cluster函数中得到的聚类结果写入txt中
+    '''
+    file = open(filename, 'w+')
+    for attr in attr_dict:
+        string = str(attr[0]) + ' ' + str(attr[1]) + ':'
+        items = attr_dict[attr]
+        for item in items:
+            string = string + str(item) + ' '
+        string = string + '\n'
+        file.write(string)
+    print("item_attr写入完成")
+    file.close()
+
+def read_item_attr_cluster(filename = "item_cluster.txt"):
+    attr_dict = dict()
+    file = open(filename, 'r')
+    lines = file.readlines()
+    for line in lines:
+        semicolon = line.find(':')
+        attr_str = line[0: semicolon]
+        items_str = line[semicolon+1: len(line)]
+        attr_str.strip().split(' ')
+        attr = (int(attr_str[0], int(attr_str[1])))
+        items = [int(item) for item in items_str.strip().split(' ')]
+        attr_dict[attr] = items
+    return attr_dict
 
 
 def train_test_user_comparison():
@@ -191,10 +287,10 @@ def train_test_user_comparison():
 
 
 if __name__ == '__main__':
-    item_attribute = get_item_attribute_dict()
-    for i in range(20):
-        print(item_attribute[i])
-
+    attr_dict = get_item_attribute_cluster_dict()
+    print(attr_dict[(592255, 26582)])
+    print(len(attr_dict[(592255, 26582)]))
+    print("读取完成")
 
 
 

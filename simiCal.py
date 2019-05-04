@@ -93,7 +93,10 @@ def consine_similarity(list_a, list_b):
     vector_b = np.array(list_b)
     num = np.matmul(vector_a, vector_b.T)
     denom = np.linalg.norm(vector_a) * np.linalg.norm(vector_b)
-    cos = num / denom
+    if 0 == denom:
+        cos = 0
+    else:
+        cos = num / denom
     return cos
 
 
@@ -165,6 +168,37 @@ def top_k_similar_user(user_item_rating, userID, K=40, threshold=0.1):
         else:
             break
     return simi_dict
+
+def item_rating_estimate(attribute_dict, user, itemID_x, K=10):
+    '''
+    根据某一用户对其他item的打分估计其对某一未打分item的打分
+    item之间的相似度用attribute来表示
+    user是一个字典，key为itemID，value为rating
+    '''
+    item_simi = dict()
+    if itemID_x not in attribute_dict:
+        print("itemAttribute里面没有" + str(itemID_x))
+        return None
+    attr_x = attribute_dict[itemID_x]
+    for itemID_y in user:
+        if itemID_y not in attribute_dict:
+            print("itemAttribute里面没有" + str(itemID_y))
+            continue
+        attr_y = attribute_dict[itemID_y]
+        simi = consine_similarity(attr_x, attr_y)
+        item_simi[itemID_y] = simi
+    item_simi = sorted(item_simi.items(), key=lambda item_simi: item_simi[1], reverse=True)
+    est_rating = 0
+    deno = 0
+    if K > len(item_simi):
+        K = len(item_simi)
+    for i in range(K):
+        itemID = item_simi[i][0]
+        simi = item_simi[i][1]
+        est_rating += user[itemID]*simi
+        deno += simi
+    est_rating = est_rating/deno
+    return est_rating
 
 
 if __name__ == '__main__':
