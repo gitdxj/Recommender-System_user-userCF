@@ -169,36 +169,30 @@ def top_k_similar_user(user_item_rating, userID, K=40, threshold=0.1):
             break
     return simi_dict
 
-def item_rating_estimate(attribute_dict, user, itemID_x, K=10):
+
+def item_rating_estimate(attr_item_dict, item_attr_dict, user, itemID_x):
     '''
     根据某一用户对其他item的打分估计其对某一未打分item的打分
     item之间的相似度用attribute来表示
     user是一个字典，key为itemID，value为rating
     '''
-    item_simi = dict()
-    if itemID_x not in attribute_dict:
-        print("itemAttribute里面没有" + str(itemID_x))
+    if itemID_x not in item_attr_dict:
         return None
-    attr_x = attribute_dict[itemID_x]
-    for itemID_y in user:
-        if itemID_y not in attribute_dict:
-            print("itemAttribute里面没有" + str(itemID_y))
-            continue
-        attr_y = attribute_dict[itemID_y]
-        simi = consine_similarity(attr_x, attr_y)
-        item_simi[itemID_y] = simi
-    item_simi = sorted(item_simi.items(), key=lambda item_simi: item_simi[1], reverse=True)
+    attr_x = item_attr_dict[itemID_x]
+    if (0, 0) == attr_x:
+        return None
+    items_attr_x = attr_item_dict[attr_x]  # attribute均为attr_x的item集合
+    # items_attr_x.remove(itemID_x)
+    n_same_items = 0
     est_rating = 0
-    deno = 0
-    if K > len(item_simi):
-        K = len(item_simi)
-    for i in range(K):
-        itemID = item_simi[i][0]
-        simi = item_simi[i][1]
-        est_rating += user[itemID]*simi
-        deno += simi
-    est_rating = est_rating/deno
-    return est_rating
+    for itemID_y in user:  # 在此用户打分的item中找出相同attribute的item
+        if itemID_y in items_attr_x:
+            n_same_items += 1
+            est_rating += user[itemID_y]
+    if 0 != n_same_items:
+        return est_rating/n_same_items
+    else:
+        return None
 
 
 if __name__ == '__main__':

@@ -145,7 +145,7 @@ def get_test_user_list(test_user_item_mapping):
 def get_item_attribute_dict():
     '''
     把itemAttribute读入字典
-    key为itemID，value为列表列表，列表第一个值是attribute1，第二个值是attribute2
+    key为itemID，value为元组，元组第一个值是attribute1，第二个值是attribute2
     '''
     file = open("itemAttribute.txt", 'r')
     lines = file.readlines()
@@ -157,15 +157,17 @@ def get_item_attribute_dict():
         itemID = int(line[0:flag_1])
         attribute1 = line[flag_1+1: flag_2]
         attribute2 = line[flag_2+1: len(line)]
-        item_attribute[itemID] = list()
+        attr = list()
         if attribute1.isdigit():
-            item_attribute[itemID].append(int(attribute1))
+            attr.append(int(attribute1))
         else:
-            item_attribute[itemID].append(0)
+            attr.append(0)
         if attribute2.isdigit():
-            item_attribute[itemID].append(int(attribute2))
+            attr.append(int(attribute2))
         else:
-            item_attribute[itemID].append(0)
+            attr.append(0)
+        attr = (attr[0], attr[1])
+        item_attribute[itemID] = attr
     return item_attribute
 
 def get_item_attribute_cluster_dict():
@@ -195,6 +197,7 @@ def get_item_attribute_cluster_dict():
         if attr not in attr_dict:
             attr_dict[attr] = list()
         attr_dict[attr].append(itemID)
+    attr_dict.pop((0, 0))
     return attr_dict
 
 
@@ -287,10 +290,28 @@ def train_test_user_comparison():
 
 
 if __name__ == '__main__':
-    attr_dict = get_item_attribute_cluster_dict()
-    print(attr_dict[(592255, 26582)])
-    print(len(attr_dict[(592255, 26582)]))
-    print("读取完成")
+    ui = read_train()
+    file = open("surprise_train.txt", 'w+')
+    for userID in ui:
+        for itemID in ui[userID]:
+            rating = ui[userID][itemID]
+            string = str(userID) + ' ' + str(itemID) + ' ' + str(rating) + '\n'
+            file.write(string)
+    # attr_dict = get_item_attribute_dict()
+    # attr1_list = [attr[0] for attr in attr_dict.values()]
+    # attr2_list = [attr[1] for attr in attr_dict.values()]
+    # attr1_max = max(attr1_list)
+    # attr2_max = max(attr2_list)
+    # ID1 = '20000'
+    # ID2 = '20001'
+    # for itemID in attr_dict:
+    #     attr = attr_dict[itemID]
+    #     attr1 = round(attr[0]*100/attr1_max)
+    #     attr2 = round(attr[1]*100/attr2_max)
+    #     string1 = ID1 + ' ' + str(itemID) + ' ' + str(attr1) + '\n'
+    #     string2 = ID2 + ' ' + str(itemID) + ' ' + str(attr2) + '\n'
+    #     file.write(string1)
+    #     file.write(string2)
 
 
 
